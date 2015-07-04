@@ -22,7 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <SDL.h>
-#include <SDL_gfxPrimitives.h>
+#include "SDL_prims.h"
 
 #define JIM_EXTENSION
 #include "jim.h"
@@ -86,7 +86,13 @@ static int JimSdlHandlerCommand(Jim_Interp *interp, int argc,
         }
         if (argc == 8 && Jim_GetLong(interp, argv[7], &alpha) != JIM_OK)
             return JIM_ERR;
-        pixelRGBA(jss->screen, x, y, red, green, blue, alpha);
+        // pixelRGBA(jss->screen, x, y, red, green, blue, alpha);
+        uint32_t color = 0;
+        color |= alpha << 24;
+        color |= red << 16;
+        color |= green << 8;
+        color |= blue;
+        SDL_DrawPixel(jss->screen, x, y, color);
         return JIM_OK;
     } else if (option == OPT_RECTANGLE || option == OPT_BOX ||
                option == OPT_LINE || option == OPT_AALINE)
@@ -110,19 +116,41 @@ static int JimSdlHandlerCommand(Jim_Interp *interp, int argc,
         }
         if (argc == 10 && Jim_GetLong(interp, argv[9], &alpha) != JIM_OK)
             return JIM_ERR;
+        uint32_t color = 0;
+        color |= alpha << 24;
+        color |= red << 16;
+        color |= green << 8;
+        color |= blue;
         switch(option) {
-        case OPT_RECTANGLE:
-            rectangleRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
-            break;
-        case OPT_BOX:
-            boxRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
-            break;
+        case OPT_RECTANGLE: {
+          // rectangleRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
+          SDL_Rect r = {
+            .x = x1, .y = y1,
+            .w = x2 - x1, .h = y2 - y1
+          };
+          SDL_DrawRect(jss->screen, &r, color);
+          break;
+        }
+        case OPT_BOX: {
+          // boxRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
+          SDL_Point rect_poly[4] = {
+            { .x = x1, .y = y1 },
+            { .x = x2, .y = y1 },
+            { .x = x2, .y = y2 },
+            { .x = x1, .y = y2 }
+          };
+          SDL_FillPolygon(jss->screen, rect_poly, sizeof(rect_poly)/sizeof(rect_poly[0]), color);
+          break;
+        }
         case OPT_LINE:
-            lineRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
-            break;
+          // lineRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
+          SDL_DrawLine(jss->screen, x1, y1, x2, y2, color);
+          break;
         case OPT_AALINE:
-            aalineRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
-            break;
+          // aalineRGBA(jss->screen, x1, y1, x2, y2, red, green, blue, alpha);
+          // not actually anti-aliased
+          SDL_DrawLine(jss->screen, x1, y1, x2, y2, color);
+          break;
         }
         return JIM_OK;
     } else if (option == OPT_CIRCLE || option == OPT_AACIRCLE ||
@@ -147,17 +175,25 @@ static int JimSdlHandlerCommand(Jim_Interp *interp, int argc,
         }
         if (argc == 9 && Jim_GetLong(interp, argv[8], &alpha) != JIM_OK)
             return JIM_ERR;
+        uint32_t color = 0;
+        color |= alpha << 24;
+        color |= red << 16;
+        color |= green << 8;
+        color |= blue;
         switch(option) {
         case OPT_CIRCLE:
-            circleRGBA(jss->screen, x, y, radius, red, green, blue, alpha);
-            break;
+          // circleRGBA(jss->screen, x, y, radius, red, green, blue, alpha);
+          SDL_DrawCircle(jss->screen, x, y, radius, color);
+          break;
         case OPT_AACIRCLE:
-            aacircleRGBA(jss->screen, x, y, radius, red, green, blue, alpha);
-            break;
+          // aacircleRGBA(jss->screen, x, y, radius, red, green, blue, alpha);
+          // not actually anti-aliased
+          SDL_DrawCircle(jss->screen, x, y, radius, color);
+          break;
         case OPT_FCIRCLE:
-            filledCircleRGBA(jss->screen, x, y, radius, red, green, blue,
-                    alpha);
-            break;
+          // filledCircleRGBA(jss->screen, x, y, radius, red, green, blue, alpha);
+          SDL_FillCircle(jss->screen, x, y, radius, color);
+          break;
         }
         return JIM_OK;
     } else if (option == OPT_FREE) {

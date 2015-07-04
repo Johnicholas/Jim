@@ -7977,7 +7977,8 @@ int Jim_LoadLibrary(Jim_Interp *interp, const char *pathName)
             if (fp == NULL)
                 continue;
             fclose(fp);
-            handle = dlopen(buf, RTLD_LAZY);
+            // handle = dlopen(buf, RTLD_LAZY);
+            handle = dlopen(buf, RTLD_NOW);
         }
         if (handle == NULL) {
             Jim_SetResult(interp, Jim_NewEmptyStringObj(interp));

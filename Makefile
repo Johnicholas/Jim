@@ -17,8 +17,8 @@
 SHELL   = /bin/sh
 RM      = rm -f
 OPT     = -Os
-LDFLAGS = $(PROFILE)
-CFLAGS  = -Wall -Wwrite-strings -W $(OPT) -g $(PROFILE)
+LDFLAGS = -Wl,--export-dynamic $(PROFILE)
+CFLAGS  = -fPIC -Wall -Wwrite-strings -W $(OPT) -g $(PROFILE)
 AR      = /usr/bin/ar
 RANLIB  = /usr/bin/ranlib
 LIBPATH =-L.
@@ -99,9 +99,9 @@ jim-readline-1.0.so:	jim-readline.xo
 jim-sdl.xo:	jim-sdl.c
 	$(CC)  `sdl-config --cflags` -I. $(CFLAGS) $(DEFS) -fPIC -c $< -o $@
 
-jim-sdl-1.0.so:	jim-sdl.xo
+jim-sdl-1.0.so:	jim-sdl.xo SDL_prims.o
 	rm -f $@
-	$(LD) -G -z text -o $@ $< $(LIBS) -lc -L/usr/local/lib -lSDL -lSDL_gfx -lpthread
+	$(LD) -G -z text -o $@ $< SDL_prims.o $(LIBS) -lc -L/usr/local/lib `sdl-config --libs`
 
 jim:	$(JIM_OBJECTS)
 	$(CC) $(LDFLAGS) -o jim $(JIM_OBJECTS) $(LIBS)

@@ -762,7 +762,7 @@ Jim_AioInit(Jim_Interp *interp)
 {
 #ifndef JIM_STATICEXT
     Jim_InitExtension(interp);
-	Jim_ImportEventloopAPI(interp);
+    // Jim_ImportEventloopAPI(interp); // Johnicholas comments this out
 #endif
     if (Jim_PackageProvide(interp, "aio", "1.0", JIM_ERRMSG) != JIM_OK)
         return JIM_ERR;

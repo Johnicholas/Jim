@@ -48,6 +48,8 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
+
 #define JIM_EXTENSION
 #define __JIM_EVENTLOOP_CORE__
 #ifdef __ECOS
